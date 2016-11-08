@@ -18,6 +18,10 @@ type Hostinfo struct {
 	DBChar string
 }
 
+var done = make(chan bool)
+var chRes = make(chan map[string]string)
+var chCol = make(chan []string)
+
 func (host *Hostinfo) get_conn(ip, port string) (*sql.DB, error) {
 	host.DBUser = "root"
 	host.DBPassword = "rootpass"
@@ -39,20 +43,20 @@ type Targetinfo struct {
 	Targetinfo Hostinfo
 }
 
-func (source_h *Sourceinfo) get_data() []string {
-	tmp_sql := "select * from jdorders_4.orders_14"
+func (source_h *Sourceinfo) get_data(chRes chan<- map[string]string) {
+	fmt.Println("get_data...")
+	tmp_sql := "select * from jdorders_4.orders_14 limit 3"
 	myDB, _ := source_h.Sourceinfo.get_conn("10.0.56.87", "4306")
 	defer myDB.Close()
 	rows, err := myDB.Query(tmp_sql)
 	defer rows.Close()
 	handleError(err)
 	cols, err := rows.Columns()
+	chCol <- cols
 	handleError(err)
-	t_col := strings.Join(cols[:], ",")
-	t_sql := "insert into jdorders_4.orders_14(" + t_col + ") values ("
 	values := make([]sql.RawBytes, len(cols))
 	scanArgs := make([]interface{}, len(values))
-	var results []string
+	//results := make(map[int]map[string]string)
 	i := 0
 	for i := range values {
 		scanArgs[i] = &values[i]
@@ -60,37 +64,51 @@ func (source_h *Sourceinfo) get_data() []string {
 	for rows.Next() {
 		err = rows.Scan(scanArgs...)
 		handleError(err)
-		d_sql := bytes.Buffer{}
-		d_sql.WriteString(t_sql)
 		row := make(map[string]string)
 		for k, v := range values {
 			key := cols[k]
 			row[key] = string(v)
 		}
-		for i, col := range cols {
-			d_sql.WriteString("'" + row[col] + "'")
-			if i != len(cols)-1 {
-				d_sql.WriteString(",")
-			}
-		}
-		d_sql.WriteString(")")
-		results = append(results, d_sql.String())
+		//results[i] = row
+		chRes <- row
 		i++
 	}
 	if err = rows.Err(); err != nil {
 		fmt.Println(err.Error())
 	}
-	return results
+	done <- true
 }
-func (target *Targetinfo) do_sql(chRes <-chan []string) {
-	results := <-chRes
+func (target *Targetinfo) insert(sql string) {
+	fmt.Println(sql)
 	db, _ := target.Targetinfo.get_conn("10.0.56.87", "5306")
 	defer db.Close()
-	for _, sql := range results {
-		tx1, _ := db.Begin()
-		_, err := tx1.Exec(sql)
+	stmt, err := db.Prepare(sql)
+	fmt.Println(sql)
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+		_, err = stmt.Exec()
 		handleError(err)
-		tx1.Commit()
+	}
+}
+func (target *Targetinfo) get_sql(chRes <-chan map[string]string) {
+	fmt.Println("consumer...")
+	col_arr := <-chCol
+	t_col := strings.Join(col_arr[:], ",")
+	t_sql := "insert into jdorders_4.orders_14(" + t_col + ") values ("
+	for {
+		c_item := <-chRes
+		//fmt.Println(c_item)
+		d_sql := bytes.Buffer{}
+		d_sql.WriteString(t_sql)
+		for i, col := range col_arr {
+			d_sql.WriteString("'" + c_item[col] + "'")
+			if i != len(col_arr)-1 {
+				d_sql.WriteString(",")
+			}
+		}
+		d_sql.WriteString(")")
+		target.insert(d_sql.String())
 	}
 }
 
@@ -100,14 +118,15 @@ func handleError(err error) {
 	}
 }
 func migrate() {
-	var chRes = make(chan []string)
 	t_producer := &Sourceinfo{}
 	t_consumer := &Targetinfo{}
-
 	go func() {
-		chRes <- t_producer.get_data()
+		for {
+			t_producer.get_data(chRes)
+		}
 	}()
-	t_consumer.do_sql(chRes)
+	go t_consumer.get_sql(chRes)
+	<-done
 }
 func main() {
 	migrate()
