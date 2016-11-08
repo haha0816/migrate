@@ -131,3 +131,32 @@ func migrate() {
 func main() {
 	migrate()
 }
+
+
+================================================================
+package main
+import "fmt"
+
+var done = make(chan bool)
+var products = make(chan int)
+
+func producer() {
+    for i := 0; i < 10; i++ {
+        products <- i
+        fmt.Println(i, " produced!")
+    }
+    done <- true
+}
+
+func consumer() {
+    for {
+        product := <- products
+        fmt.Println(product, " consumed!")
+    }
+}
+
+func main() {
+    go producer();
+    go consumer();
+    <- done
+}
