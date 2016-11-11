@@ -135,7 +135,7 @@ func main() {
 
 ================================================================
 package main
-import "fmt"
+import "fmt"
 
 var done = make(chan bool)
 var products = make(chan int)
