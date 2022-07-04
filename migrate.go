@@ -84,7 +84,7 @@ func (source_h *Sourceinfo) get_data() []string {
 }
 func (target *Targetinfo) do_sql(chRes <-chan []string) {
     results := <-chRes
-    db, _ := target.Targetinfo.get_conn("10.0.56.87", "5306")
+    db, _ := target.Targetinfo.get_conn("xx", "5306")
     defer db.Close()
     for _, sql := range results {
         tx1, _ := db.Begin()
