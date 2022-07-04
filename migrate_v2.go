@@ -35,7 +35,7 @@ func init() {
 	go result.Run()
 }
 func (resstr *ResStr) query(tab string) []string {
-	producer_db, _ := sql.Open("mysql", "root:rootpass@tcp(10.0.56.87:4306)/jdorders_4")
+	producer_db, _ := sql.Open("mysql", "root:rootpass@tcp(10.0.56.87:4306)/xx")
 	defer producer_db.Close()
 	tmpsql := "select * from " + tab + " limit 100"
 	rows, err := producer_db.Query(tmpsql)
@@ -92,7 +92,7 @@ func migrate(tab string) {
 	TASK_COUNT := len(res_arr)
 	chTas := make(chan string, GOROUTINE_COUNT)
 	chTasR := make(chan int, GOROUTINE_COUNT)
-	target_db, _ := sql.Open("mysql", "root:rootpass@tcp(10.0.56.87:5306)/jdorders_4")
+	target_db, _ := sql.Open("mysql", "root:rootpass@tcp(10.0.56.87:5306)/xx")
 	defer target_db.Close()
 	for i := 0; i < GOROUTINE_COUNT; i++ {
 		go func() {
@@ -123,6 +123,6 @@ func migrate(tab string) {
 }
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	tab := "jdorders_4.orders_14"
+	tab := "xx.xx"
 	migrate(tab)
 }
