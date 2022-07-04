@@ -45,7 +45,7 @@ type Targetinfo struct {
 
 func (source_h *Sourceinfo) get_data(chRes chan<- map[string]string) {
 	fmt.Println("get_data...")
-	tmp_sql := "select * from jdorders_4.orders_14 limit 3"
+	tmp_sql := "select * from xx.xx limit 3"
 	myDB, _ := source_h.Sourceinfo.get_conn("10.0.56.87", "4306")
 	defer myDB.Close()
 	rows, err := myDB.Query(tmp_sql)
@@ -80,7 +80,7 @@ func (source_h *Sourceinfo) get_data(chRes chan<- map[string]string) {
 }
 func (target *Targetinfo) insert(sql string) {
 	fmt.Println(sql)
-	db, _ := target.Targetinfo.get_conn("10.0.56.87", "5306")
+	db, _ := target.Targetinfo.get_conn("xx", "5306")
 	defer db.Close()
 	stmt, err := db.Prepare(sql)
 	fmt.Println(sql)
@@ -95,7 +95,7 @@ func (target *Targetinfo) get_sql(chRes <-chan map[string]string) {
 	fmt.Println("consumer...")
 	col_arr := <-chCol
 	t_col := strings.Join(col_arr[:], ",")
-	t_sql := "insert into jdorders_4.orders_14(" + t_col + ") values ("
+	t_sql := "insert into xx.xx(" + t_col + ") values ("
 	for {
 		c_item := <-chRes
 		//fmt.Println(c_item)
