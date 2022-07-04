@@ -40,8 +40,8 @@ type Targetinfo struct {
 }
 
 func (source_h *Sourceinfo) get_data() []string {
-    tmp_sql := "select * from jdorders_4.orders_14"
-    myDB, _ := source_h.Sourceinfo.get_conn("10.0.56.87", "4306")
+    tmp_sql := "select * from xx.xx"
+    myDB, _ := source_h.Sourceinfo.get_conn("xx", "4306")
     defer myDB.Close()
     rows, err := myDB.Query(tmp_sql)
     defer rows.Close()
@@ -49,7 +49,7 @@ func (source_h *Sourceinfo) get_data() []string {
     cols, err := rows.Columns()
     handleError(err)
     t_col := strings.Join(cols[:], ",")
-    t_sql := "insert into jdorders_4.orders_14(" + t_col + ") values ("
+    t_sql := "insert into xx.xx(" + t_col + ") values ("
     values := make([]sql.RawBytes, len(cols))
     scanArgs := make([]interface{}, len(values))
     var results []string
