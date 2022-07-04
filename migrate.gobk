@@ -46,7 +46,7 @@ type Targetinfo struct {
 func (source_h *Sourceinfo) get_data(chRes chan<- map[string]string) {
 	fmt.Println("get_data...")
 	tmp_sql := "select * from xx.xx limit 3"
-	myDB, _ := source_h.Sourceinfo.get_conn("10.0.56.87", "4306")
+	myDB, _ := source_h.Sourceinfo.get_conn("xx", "4306")
 	defer myDB.Close()
 	rows, err := myDB.Query(tmp_sql)
 	defer rows.Close()
