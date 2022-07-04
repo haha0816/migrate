@@ -35,7 +35,7 @@ func init() {
 	go result.Run()
 }
 func (resstr *ResStr) query(tab string) []string {
-	producer_db, _ := sql.Open("mysql", "root:rootpass@tcp(10.0.56.87:4306)/xx")
+	producer_db, _ := sql.Open("mysql", "root:rootpass@tcp(xx:4306)/xx")
 	defer producer_db.Close()
 	tmpsql := "select * from " + tab + " limit 100"
 	rows, err := producer_db.Query(tmpsql)
